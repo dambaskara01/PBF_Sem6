@@ -31,7 +31,7 @@ const TampilanLogin = () => {
       return;
     }
 
-    setError("Email atau password tidak valid");
+    setError("Full name, email, atau password tidak valid");
   };
 
   return (
@@ -51,6 +51,7 @@ const TampilanLogin = () => {
             value={fullname}
             onChange={(event) => setFullname(event.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+            required
           />
         </div>
 
