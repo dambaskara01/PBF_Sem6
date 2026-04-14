@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export function middleware(request: NextRequest) {
-  const isLogin = request.cookies.get("isLogin")?.value === "true";
+export async function middleware(request: NextRequest) {
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
 
-  if (isLogin) return NextResponse.next();
+  if (token) return NextResponse.next();
 
-  return NextResponse.redirect(new URL("/login", request.url));
+  return NextResponse.redirect(new URL("/auth/login", request.url));
 
   //return NextResponse.redirect(new URL("/", request.url));
   //return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/produk/:path*", "/about/:path*"],
+  matcher: ["/produk/:path*", "/about/:path*", "/profile/:path*"],
 };
