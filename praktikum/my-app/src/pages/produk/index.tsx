@@ -1,24 +1,17 @@
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import HeroSection from "@/views/produk/herosection";
-import MainSection from "@/views/produk/mainsection";
+import TampilanProduk from "../../views/produk";
+import useSWR from "swr";
+import fetcher from "../../utils/swr/fetcher";
 
-const Produk = () => {
-  const [isLogin, setIsLogin] = useState(false);
-  const { push } = useRouter();
+// const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-  useEffect(() => {
-    if (!isLogin) {
-      push("/auth/login");
-    }
-  }, [isLogin, push]);
+const ProdukPage = () => {
+  const { data, isLoading } = useSWR("/api/produk", fetcher);
 
   return (
     <div>
-      <HeroSection />
-      <MainSection />
+      <TampilanProduk products={isLoading ? [] : (data?.data ?? [])} />
     </div>
   );
 };
 
-export default Produk;
+export default ProdukPage;
