@@ -5,6 +5,9 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  pages: {
+    signIn: "/auth/login",
+  },
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
@@ -15,18 +18,17 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const user: any = {
-          id: "1",
-          email: credentials?.email,
-          password: credentials?.password,
-          fullname: credentials?.fullname,
-        };
-        if (user) {
-          // console.log("user", user)
-          return user;
-        } else {
+        if (!credentials?.email || !credentials?.password) {
           return null;
         }
+
+        const user: any = {
+          id: "1",
+          email: credentials.email,
+          fullname: credentials.fullname || "User",
+        };
+
+        return user;
       },
     }),
   ],
