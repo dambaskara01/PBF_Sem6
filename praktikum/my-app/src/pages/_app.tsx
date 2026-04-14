@@ -1,17 +1,15 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
-import { useRouter } from "next/router";
 import AppShell from "@/components/layouts/Appshell";
+import Navbar from "@/components/layouts/navbar";
+import { SessionProvider } from "next-auth/react";
 
-export default function App({ Component, pageProps }: AppProps) {
-  const router = useRouter();
-  const is404Page = router.pathname === "/404";
-
-  return is404Page ? (
-    <Component {...pageProps} />
-  ) : (
-    <AppShell>
-      <Component {...pageProps} />
-    </AppShell>
+export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+  return (
+    <SessionProvider session={pageProps.session}>
+      <AppShell>
+        <Component {...pageProps} />
+      </AppShell>
+    </SessionProvider>
   );
 }
