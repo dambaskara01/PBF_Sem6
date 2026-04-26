@@ -11,14 +11,25 @@ const TampilanRegister = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
-    setIsLoading(true);
 
     const form = event.currentTarget;
     const formData = new FormData(event.currentTarget);
 
-    const email = formData.get("email") as string;
+    const email = (formData.get("email") as string)?.trim();
     const fullname = formData.get("Fullname") as string;
     const password = formData.get("Password") as string;
+
+    if (!email) {
+      setError("Email wajib diisi");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password minimal 6 karakter");
+      return;
+    }
+
+    setIsLoading(true);
 
     const response = await fetch("/api/register", {
       method: "POST",
@@ -61,6 +72,7 @@ const TampilanRegister = () => {
             name="email"
             placeholder="Email"
             className={style.register__form__item__input}
+            required
           />
         </div>
 
@@ -93,6 +105,8 @@ const TampilanRegister = () => {
             name="Password"
             placeholder="Password"
             className={style.register__form__item__input}
+            minLength={6}
+            required
           />
         </div>
 
