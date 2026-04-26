@@ -31,6 +31,22 @@ export async function retrieveDataByID(
   return data;
 }
 
+export async function signIn(email: string) {
+  const q = query(collection(db, "users"), where("email", "==", email));
+  const querySnapshot = await getDocs(q);
+
+  const data = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
+  if (data) {
+    return data[0];
+  } else {
+    return null;
+  }
+}
+
 export async function signUp(
   userData: {
     email: string;
@@ -104,7 +120,12 @@ export async function login(
     }
 
     const user = users[0];
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const storedPassword = String(user.password || "");
+    const isBcryptHash = /^\$2[aby]\$\d{2}\$/.test(storedPassword);
+
+    const passwordMatch = isBcryptHash
+      ? await bcrypt.compare(password, storedPassword)
+      : password === storedPassword;
 
     if (!passwordMatch) {
       console.log("Password does not match");

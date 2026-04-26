@@ -45,7 +45,6 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.fullname = user.fullname;
       }
-      //   console.log("jwt callback", { token, account, profile, user })
       return token;
     },
     async session({ session, token }: any) {
@@ -55,7 +54,6 @@ export const authOptions: NextAuthOptions = {
       if (token.fullname) {
         session.user.fullname = token.fullname;
       }
-      //   console.log("session callback", { session, token })
       return session;
     },
   },

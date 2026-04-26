@@ -1,105 +1,115 @@
 import Link from "next/link";
-import style from "@/views/auth/login/login.module.scss";
-import { FormEvent, useState } from "react";
 import { useRouter } from "next/router";
-import { signIn, getSession } from "next-auth/react";
+import { FormEvent, useState } from "react";
+import { signIn } from "next-auth/react";
+import style from "../../auth/login/login.module.scss";
 
-export default function TampilanLogin() {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
-    const { push, query } = useRouter();
+const TampilanLogin = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const { push, query } = useRouter();
+  const [error, setError] = useState("");
+  const callbackUrl: any = query.callbackUrl || "/";
 
-    // Mengambil url tujuan setelah login berhasil (default ke "/")
-    const callbackUrl: any = query.callbackUrl || "/";
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setError("");
-        setIsLoading(true);
+    const formData = new FormData(event.currentTarget);
 
-    const target = event.currentTarget;
+    const email = (formData.get("email") as string)?.trim();
+    const password = (formData.get("password") as string) || "";
 
-        try {
-            const res = await signIn("credentials", {
-                redirect: false,
-                email: (target.email as HTMLInputElement).value,
-                password: (target.password as HTMLInputElement).value,
-                callbackUrl,
-            });
+    if (!email) {
+      setError("Email wajib diisi");
+      return;
+    }
 
-            if (!res?.error) {
-                setIsLoading(false);
+    if (password.length < 6) {
+      setError("Password minimal 6 karakter");
+      return;
+    }
 
-            // Ambil data session terbaru setelah login sukses
-            const session: any = await getSession();
+    setIsLoading(true);
 
-                // Cek Role: Kalau Admin, paksa ke /admin. Kalau bukan, ke callbackUrl.
-                if (session?.user?.role === "admin") {
-                    push("/admin");
-                } else {
-                    push(callbackUrl);
-        }
-            } else {
-                setIsLoading(false);
-                setError(
-                    res.error === "CredentialsSignin"
-                        ? "Email or Password wrong"
-                        : res.error
-                );
-            }
-        } catch (error) {
-            setIsLoading(false);
-            setError("Something went wrong, please try again");
-        }
-    };
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        callbackUrl,
+      });
 
-    return (
-        <div className={style.login}>
-            <h1 className={style.login__title}>Halaman Login</h1>
-            <form className={style.login__form} onSubmit={handleSubmit}>
-                <div className={style.login__form__item}>
-                    <label htmlFor="email" className={style.login__form__item__label}>
-                        Email
-                    </label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="Email"
-                        className={style.login__form__item__input}
-                        required
-                    />
-                </div>
+      if (!res?.error) {
+        setIsLoading(false);
+        push(callbackUrl);
+      } else {
+        setIsLoading(false);
+        setError(
+          res.error === "CredentialsSignin"
+            ? "Email atau password salah"
+            : (res.error || "Login failed")
+        );
+      }
+    } catch (error) {
+      setIsLoading(false);
+      setError("wrong email or password");
+    }
+  };
 
-                <div className={style.login__form__item}>
-                    <label htmlFor="password" className={style.login__form__item__label}>
-                        Password
-                    </label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Password"
-                        minLength={6}
-                        className={style.login__form__item__input}
-                        required
-                    />
-                </div>
+  return (
+    <div className={style.login}>
+      {error && <p className={style.login__error}>{error}</p>}
+      <h1 className={style.login__title}>Halaman Login</h1>
+      <form className={style.login__form} onSubmit={handleSubmit}>
+        <div className={style.login__form__item}>
+          <label
+            htmlFor="email"
+            className={style.login__form__item__label}
+          >
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Email"
+            className={style.login__form__item__input}
+            required
+          />
+        </div>
 
-            {error && <p className={style.login__link}>{error}</p>}
+        <div className={style.login__form__item}>
+          <label
+            htmlFor="Password"
+            className={style.login__form__item__label}
+          >
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Password"
+            className={style.login__form__item__input}
+            minLength={6}
+            required
+          />
+        </div>
 
-                <button
-                    type="submit"
-                    disabled={isLoading}
-                    className={style.login__form__button}
-                >
-                    {isLoading ? "Loading..." : "Login"}
-                </button>
+        <button 
+          type="submit"
+          disabled={isLoading}
+          className={style.login__form__button}
+        >
+          {isLoading ? "Loading..." : "Login"}
+        </button>
 
-        <p className={style.login__link}>
-          Tidak punya akun? <Link href="/auth/register">Ke Halaman Register</Link>
+        <p className={style.login__form__link}>
+          Belum punya akun? <Link href="/auth/register">Ke Halaman Register</Link>
         </p>
       </form>
     </div>
   );
-}
+};
+
+export default TampilanLogin;

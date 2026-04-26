@@ -1,11 +1,20 @@
 .login {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* ← penting */
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #1e3c72, #2a5298);
   padding: 20px;
+
+  &__error {
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: red;
+    text-align: center;
+  }
 
   &__title {
     width: 100%;
@@ -49,6 +58,7 @@
           box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.2);
         }
       }
+
     }
 
     &__button {
@@ -80,9 +90,11 @@
         text-decoration: none;
       }
     }
+
   }
 }
 
+/* Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -94,6 +106,7 @@
   }
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .login {
     &__form {
