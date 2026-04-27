@@ -71,10 +71,21 @@
       font-weight: 600;
       cursor: pointer;
       transition: 0.3s ease;
+      margin-top: 12px;
 
       &:hover {
         background: #1e3c72;
         transform: translateY(-2px);
+      }
+    }
+
+    &__googleButton {
+      background: #ffffff;
+      border: 1px solid #2a5298;
+      color: #2a5298;
+
+      &:hover {
+        background: #f4f7ff;
       }
     }
 

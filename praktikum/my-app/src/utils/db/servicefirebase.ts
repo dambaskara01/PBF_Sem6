@@ -7,6 +7,7 @@ import {
   query,
   addDoc,
   where,
+  updateDoc,
 } from "firebase/firestore";
 import app from "./firebase";
 import bcrypt from "bcrypt";
@@ -22,10 +23,7 @@ export async function retrieveProducts(collectionName: string) {
   return data;
 }
 
-export async function retrieveDataByID(
-  collectionName: string,
-  id: string
-) {
+export async function retrieveDataByID(collectionName: string, id: string) {
   const snapshot = await getDoc(doc(db, collectionName, id));
   const data = snapshot.data();
   return data;
@@ -54,11 +52,11 @@ export async function signUp(
     password: string;
     role?: string;
   },
-  callback: Function
+  callback: Function,
 ) {
   const q = query(
     collection(db, "users"),
-    where("email", "==", userData.email)
+    where("email", "==", userData.email),
   );
 
   const querySnapshot = await getDocs(q);
@@ -98,15 +96,62 @@ export async function signUp(
   }
 }
 
-export async function login(
-  email: string,
-  password: string
-): Promise<{ id: string; email: string; fullname: string; role: string } | null> {
+export async function signInWithGoogle(userData: any, callback: any) {
   try {
     const q = query(
       collection(db, "users"),
-      where("email", "==", email)
+      where("email", "==", userData.email),
     );
+
+    const querySnapshot = await getDocs(q);
+    const data: any = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    if (data.length > 0) {
+      // User sudah ada, update data
+      userData.role = data[0].role;
+
+      await updateDoc(doc(db, "users", data[0].id), userData);
+
+      callback({
+        status: true,
+        message: "User registered and logged in with Google",
+        data: userData,
+      });
+    } else {
+      // User baru, tambah data
+      userData.role = "member";
+
+      await addDoc(collection(db, "users"), userData);
+
+      callback({
+        status: true,
+        message: "User registered and logged in with Google",
+        data: userData,
+      });
+    }
+  } catch (error: any) {
+    // Tangani error di sini
+    callback({
+      status: false,
+      message: "Failed to register user with Google",
+    });
+  }
+}
+
+export async function login(
+  email: string,
+  password: string,
+): Promise<{
+  id: string;
+  email: string;
+  fullname: string;
+  role: string;
+} | null> {
+  try {
+    const q = query(collection(db, "users"), where("email", "==", email));
 
     const querySnapshot = await getDocs(q);
     const users = querySnapshot.docs.map((doc) => ({

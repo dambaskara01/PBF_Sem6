@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { login } from "@/utils/db/servicefirebase";
+import GoogleProvider from "next-auth/providers/google";
+import { login, signInWithGoogle } from "@/utils/db/servicefirebase";
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -14,7 +15,6 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        fullname: { label: "Full Name", type: "text" },
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
@@ -33,27 +33,81 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           fullname: user.fullname,
-          role: user.role,
+          role: user.role || "user",
         };
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
   ],
-
   callbacks: {
     async jwt({ token, account, profile, user }: any) {
-      if (account?.provider === "credentials" && user) {
+      if (user) {
         token.email = user.email;
-        token.fullname = user.fullname;
+        token.fullname = user.fullname || user.name || profile?.name;
+        token.role = user.role || token.role || "user";
       }
+
+      if (account?.provider === "google") {
+        const data = {
+          fullname: user.name,
+          email: user.email,
+          image: user.image,
+          type: account.provider,
+        };
+
+        await signInWithGoogle(data, (result: any) => {
+          // Pastikan mengecek result.status sesuai dengan object yang dikirim
+          if (result.status) {
+            token.fullname = result.data.fullname;
+            token.email = result.data.email;
+            token.image = result.data.image;
+            token.type = result.data.type;
+            token.role = result.data.role;
+          }
+        });
+      }
+
+      if (account?.provider === "google") {
+        token.fullname = profile?.name || token.fullname || token.name || "";
+        token.email = token.email || profile?.email || user?.email;
+        token.image = profile?.picture || token.image || user?.image;
+        token.role = token.role || "user";
+        token.type = account.provider;
+      }
+
       return token;
     },
     async session({ session, token }: any) {
-      if (token.email) {
-        session.user.email = token.email;
+      if (session.user) {
+        const userSession = session.user as typeof session.user & {
+          fullname?: string;
+          role?: string;
+          type?: string;
+        };
+
+        if (token.email) {
+          userSession.email = token.email;
+        }
+        if (token.fullname) {
+          userSession.fullname = token.fullname;
+        }
+
+        if (token.image) {
+          userSession.image = token.image;
+        }
+
+        if (token.role) {
+          userSession.role = token.role;
+        }
+
+        if (token.type) {
+          userSession.type = token.type;
+        }
       }
-      if (token.fullname) {
-        session.user.fullname = token.fullname;
-      }
+
       return session;
     },
   },

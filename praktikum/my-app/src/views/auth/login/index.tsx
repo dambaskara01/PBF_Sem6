@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import style from "../../auth/login/login.module.scss";
 
 const TampilanLogin = () => {
@@ -40,14 +40,19 @@ const TampilanLogin = () => {
       });
 
       if (!res?.error) {
+        const session: any = await getSession();
         setIsLoading(false);
-        push(callbackUrl);
+        if (session?.user?.role === "admin") {
+          push("/admin");
+        } else {
+          push(callbackUrl);
+        }
       } else {
         setIsLoading(false);
         setError(
           res.error === "CredentialsSignin"
             ? "Email atau password salah"
-            : (res.error || "Login failed")
+            : res.error || "Login failed",
         );
       }
     } catch (error) {
@@ -62,10 +67,7 @@ const TampilanLogin = () => {
       <h1 className={style.login__title}>Halaman Login</h1>
       <form className={style.login__form} onSubmit={handleSubmit}>
         <div className={style.login__form__item}>
-          <label
-            htmlFor="email"
-            className={style.login__form__item__label}
-          >
+          <label htmlFor="email" className={style.login__form__item__label}>
             Email
           </label>
           <input
@@ -77,12 +79,8 @@ const TampilanLogin = () => {
             required
           />
         </div>
-
         <div className={style.login__form__item}>
-          <label
-            htmlFor="Password"
-            className={style.login__form__item__label}
-          >
+          <label htmlFor="Password" className={style.login__form__item__label}>
             Password
           </label>
           <input
@@ -95,8 +93,7 @@ const TampilanLogin = () => {
             required
           />
         </div>
-
-        <button 
+        <button
           type="submit"
           disabled={isLoading}
           className={style.login__form__button}
@@ -104,8 +101,17 @@ const TampilanLogin = () => {
           {isLoading ? "Loading..." : "Login"}
         </button>
 
+        <button
+          type="button"
+          onClick={() => signIn("google", { callbackUrl, redirect: false })}
+          className={`${style.login__form__button} ${style.login__form__googleButton}`}
+          disabled={isLoading}
+        >
+          {isLoading ? "Loading..." : "sign in with google"}
+        </button>
         <p className={style.login__form__link}>
-          Belum punya akun? <Link href="/auth/register">Ke Halaman Register</Link>
+          Belum punya akun?{" "}
+          <Link href="/auth/register">Ke Halaman Register</Link>
         </p>
       </form>
     </div>
