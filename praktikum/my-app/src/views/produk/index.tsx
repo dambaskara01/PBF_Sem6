@@ -29,7 +29,7 @@ const TampilanProduk = ({
                 className={styles.produk__content__item}
               >
                 <div className={styles.produk__content__item__image}>
-                  <img src={products.image} alt={products.name} width={200} />
+                  <img src={products.image} alt={products.name} width={200} height={200} />
                 </div>
                 <h4 className={styles.produk__content__item__name}>
                   {products.name}
